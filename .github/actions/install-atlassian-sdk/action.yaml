@@ -1,0 +1,32 @@
+name: Install Atlassian SDK
+description: Install the Atlassian SDK
+
+inputs:
+  java:
+    description: Choose the Java version to install
+    required: true
+    default: '11'
+  atlassian-sdk:
+    description: Choose the Atlassian SDK version to install
+    required: true
+    default: '8.2.7'
+  ATLAS_HOME:
+    description: Choose the Directory path
+    required: true
+    default: '/opt/atlassian-sdk'
+runs:
+  using: composite
+  steps:
+  - name: Setup JDK
+    uses: actions/setup-java@v1
+    with:
+      java-version: ${{ inputs.java }}
+
+  - name: Setup Atlassian SDK
+    run: |
+      wget https://packages.atlassian.com/maven/repository/public/com/atlassian/amps/atlassian-plugin-sdk/${{ inputs.atlassian-sdk }}/atlassian-plugin-sdk-${{ inputs.atlassian-sdk }}.tar.gz \
+          -nv -O atlassian-plugin-sdk.tar.gz
+      mkdir -p ${{inputs.ATLAS_HOME}}
+      tar -xzf atlassian-plugin-sdk.tar.gz -C ${{inputs.ATLAS_HOME}} --strip-components=1
+      echo "${{inputs.ATLAS_HOME}}/bin" >> $GITHUB_PATH
+    shell: bash
