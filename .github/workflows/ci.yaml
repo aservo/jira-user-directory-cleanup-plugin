@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - 'main'
+
+jobs:
+
+  package:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Install Atlassian SDK
+        uses: ./.github/actions/install-atlassian-sdk
+        with:
+          java: 11
+          atlassian-sdk: 8.2.7
+
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: udc-plugin-${{ hashFiles('**/pom.xml') }}
+          restore-keys: udc-plugin
+
+      - name: Build with Maven
+        run: atlas-package -DskipUnitTests -B
+
+  unit-tests:
+    needs: package
+    runs-on: ubuntu-20.04
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: install atlassian SDK
+        uses: ./.github/actions/install-atlassian-sdk
+        with:
+          java: 11
+          atlassian-sdk: 8.2.7
+
+      - name: Cache Maven package
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: udc-plugin-${{ hashFiles('**/pom.xml') }}
+          restore-keys: udc-plugin
+
+      - name: Run Unit Tests
+        run: atlas-unit-test
+
+  integration-tests:
+    needs: package
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: install atlassian SDK
+        uses: ./.github/actions/install-atlassian-sdk
+        with:
+          java: 11
+          atlassian-sdk: 8.2.7
+
+      - name: Cache Maven package
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: udc-plugin-${{ hashFiles('**/pom.xml') }}
+          restore-keys: udc-plugin
+
+      - name: Run Integration Tests
+        run: atlas-integration-test
