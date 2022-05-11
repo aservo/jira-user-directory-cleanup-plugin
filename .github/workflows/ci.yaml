@@ -43,6 +43,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: '0'
 
       - name: install atlassian SDK
         uses: ./.github/actions/install-atlassian-sdk
@@ -57,8 +59,8 @@ jobs:
           key: udc-plugin-${{ hashFiles('**/pom.xml') }}
           restore-keys: udc-plugin
 
-      - name: Run Unit Tests
-        run: atlas-unit-test
+      - name: Run Unit Tests and analyze on SonarCloud
+        run: atlas-unit-test sonar:sonar -B
 
   integration-tests:
     needs: package
